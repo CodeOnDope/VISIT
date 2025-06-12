@@ -1,0 +1,94 @@
+"""
+Movement detector for the VISIT Museum Tracker system.
+
+Detects visitor movements and tracks motion trajectories.
+"""
+
+import cv2
+import numpy as np
+import logging
+
+from src.core.detector_base import DetectorBase
+
+logger = logging.getLogger("MovementDetector")
+
+class MovementDetector(DetectorBase):
+    """Detects visitor movement and trajectories."""
+
+    def __init__(self, config=None):
+        """
+        Initialize MovementDetector.
+
+        Args:
+            config (dict, optional): Configuration options including:
+                - min_movement_threshold (float): Minimum movement to consider (default 5.0)
+                - max_trajectory_length (int): Max length of trajectory points to keep (default 50)
+        """
+        super().__init__(config)
+        self.config = config or {
+            "min_movement_threshold": 5.0,
+            "max_trajectory_length": 50,
+        }
+        self.trajectories = {}  # visitor_id -> list of positions
+
+    def process_frame(self, frame, detections=None):
+        """
+        Track movements based on detected visitor positions.
+
+        Args:
+            frame (np.ndarray): Current video frame.
+            detections (list): List of visitor positions [(x, y), ...]
+
+        Returns:
+            dict: Movement trajectories and annotated frame.
+        """
+        if not self.is_running:
+            return {"trajectories": {}, "annotated_frame": frame.copy()}
+
+        annotated_frame = frame.copy()
+
+        if not detections:
+            return {"trajectories": self.trajectories, "annotated_frame": annotated_frame}
+
+        for visitor_id, position in detections:
+            if visitor_id not in self.trajectories:
+                self.trajectories[visitor_id] = []
+
+            traj = self.trajectories[visitor_id]
+            if len(traj) == 0 or self._distance(traj[-1], position) > self.config["min_movement_threshold"]:
+                traj.append(position)
+                if len(traj) > self.config["max_trajectory_length"]:
+                    traj.pop(0)
+
+        # Draw trajectories
+        for visitor_id, points in self.trajectories.items():
+            for i in range(1, len(points)):
+                cv2.line(annotated_frame, points[i-1], points[i], (255, 0, 0), 2)
+            # Draw last position with ID
+            if points:
+                cv2.putText(annotated_frame, f"ID {visitor_id}", points[-1], cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 255, 0), 2)
+
+        return {"trajectories": self.trajectories, "annotated_frame": annotated_frame}
+
+    def _distance(self, p1, p2):
+        """Calculate Euclidean distance between two points."""
+        return np.linalg.norm(np.array(p1) - np.array(p2))
+
+    def get_detector_info(self):
+        """Return metadata about this detector."""
+        return {
+            "name": "Movement Detector",
+            "description": "Tracks visitor movement and trajectories",
+            "config_options": {
+                "min_movement_threshold": {
+                    "type": "float",
+                    "default": 5.0,
+                    "description": "Minimum movement to register position update"
+                },
+                "max_trajectory_length": {
+                    "type": "int",
+                    "default": 50,
+                    "description": "Maximum length of movement trajectory to keep"
+                }
+            }
+        }
