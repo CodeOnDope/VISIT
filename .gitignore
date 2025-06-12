@@ -1,0 +1,28 @@
+# Python cache files 
+__pycache__/ 
+*.py[cod] 
+*$py.class 
+ 
+# Virtual Environment 
+venv/ 
+env/ 
+ENV/ 
+ 
+# Distribution / packaging 
+dist/ 
+build/ 
+*.egg-info/ 
+ 
+# Unit test / coverage reports 
+htmlcov/ 
+.tox/ 
+.coverage 
+ 
+# Logs 
+logs/ 
+ 
+# Cache 
+data/cache/ 
+ 
+# Environment variables 
+.env 
