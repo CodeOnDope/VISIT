@@ -1,0 +1,43 @@
+{
+    "camera": {
+        "camera_id": 0,
+        "resolution": [
+            640,
+            480
+        ],
+        "fps": 30
+    },
+    "detectors": {
+        "face": {
+            "enabled": true,
+            "min_detection_confidence": 0.5,
+            "model_selection": 0
+        },
+        "expression": {
+            "enabled": true,
+            "min_detection_confidence": 0.5,
+            "min_tracking_confidence": 0.5,
+            "max_num_faces": 1,
+            "enable_expressions": [
+                "smile",
+                "frown",
+                "surprise",
+                "neutral"
+            ]
+        }
+    },
+    "ui": {
+        "theme": "default",
+        "video_resize_mode": "contain"
+    },
+    "analytics": {
+        "enabled": true,
+        "storage_path": "../data/analytics",
+        "session_recording": false
+    },
+    "logging": {
+        "level": "info",
+        "file_logging": true,
+        "log_directory": "../logs"
+    }
+}
